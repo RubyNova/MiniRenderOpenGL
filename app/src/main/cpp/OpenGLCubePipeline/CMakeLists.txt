@@ -23,4 +23,4 @@ find_library( # Sets the name of the path variable.
 add_library (MiniRenderOpenGLPipeline "OpenGLCubePipeline.cpp" "OpenGLCubePipeline.h" "src/OpenGLPipelineService.cpp" "include/OpenGLPipelineService.h" "include/FileLoadingService.h" "include/Vertex.h" "include/CameraBufferObject.h" "include/ShaderProgram.h" "ThirdParty/jsoncpp/jsoncpp.cpp" "ThirdParty/jsoncpp/json/json.h" "ThirdParty/jsoncpp/json/json-forwards.h")
 target_include_directories(MiniRenderOpenGLPipeline PRIVATE ${STB_INCLUDES})
 
-target_link_libraries(MiniRenderOpenGLPipeline  app-glue android libEGL libGLESv3 glm ${log-lib})
+target_link_libraries(MiniRenderOpenGLPipeline  app-glue android EGL GLESv3 glm ${log-lib})
