@@ -1,3 +1,4 @@
+#include <android/log.h>
 #include "../include/OpenGLPipelineService.h"
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG
@@ -240,12 +241,13 @@ void OpenGLPipelineService::loadTextures() {
     glGenTextures(1, &_textureHandle);
     glBindTexture(GL_TEXTURE_2D, _textureHandle);
 
-    int mode = GL_RGBA;
+    int mode = GL_RGBA; //GL_RGBA;
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, mode, texWidth, texHeight, 0, mode, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(pixels));
+    auto fuck = glGetError();
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(pixels);
