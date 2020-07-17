@@ -10,6 +10,7 @@ set_target_properties(glm PROPERTIES LINKER_LANGUAGE CXX)
 add_library(app-glue STATIC ${APP_GLUE_DIR}/android_native_app_glue.c)
 #add_library(jsoncpp STATIC ../ThirdParty/jsoncpp)
 #set_target_properties(jsoncpp PROPERTIES LINKER_LANGUAGE CXX)
+add_subdirectory(ThirdParty/glfm)
 
 find_library( # Sets the name of the path variable.
         log-lib
@@ -23,4 +24,4 @@ find_library( # Sets the name of the path variable.
 add_library (MiniRenderOpenGLPipeline "OpenGLCubePipeline.cpp" "OpenGLCubePipeline.h" "src/OpenGLPipelineService.cpp" "include/OpenGLPipelineService.h" "include/FileLoadingService.h" "include/Vertex.h" "include/CameraBufferObject.h" "include/ShaderProgram.h" "ThirdParty/jsoncpp/jsoncpp.cpp" "ThirdParty/jsoncpp/json/json.h" "ThirdParty/jsoncpp/json/json-forwards.h")
 target_include_directories(MiniRenderOpenGLPipeline PRIVATE ${STB_INCLUDES})
 
-target_link_libraries(MiniRenderOpenGLPipeline  app-glue android EGL GLESv3 glm ${log-lib})
+target_link_libraries(MiniRenderOpenGLPipeline app-glue android GLESv3 glm ${log-lib} glfm)

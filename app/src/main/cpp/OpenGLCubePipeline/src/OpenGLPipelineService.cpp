@@ -5,10 +5,11 @@
 
 #include "../../ThirdParty/stb/stb_image.h"
 
-void OpenGLPipelineService::initVoxelData(android_app* app) {
+void OpenGLPipelineService::initVoxelData(AAssetManager* manager) {
+    _assetManager = manager;
     Json::Value root;
     auto path = "Resources/VoxelModels/Test.json";
-    auto json = FileLoadingService::readFile(app, path);
+    auto json = FileLoadingService::readFile(manager, path);
 
     Json::CharReaderBuilder builder;
     std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
@@ -121,9 +122,10 @@ ShaderProgram OpenGLPipelineService::loadShaders(const std::string& vertexFileNa
     std::string shadersDirPath = "Resources/Shaders/";
 
     // Read the Vertex Shader code from the file
-    std::string vertexShaderCode;
 
-    std::ifstream VertexShaderStream(shadersDirPath + vertexFileName, std::ios::in);
+
+
+/*    std::ifstream VertexShaderStream(shadersDirPath + vertexFileName, std::ios::in);
     if (VertexShaderStream.is_open()) {
         std::stringstream sstr;
         sstr << VertexShaderStream.rdbuf();
@@ -132,10 +134,10 @@ ShaderProgram OpenGLPipelineService::loadShaders(const std::string& vertexFileNa
     }
     else {
         throw std::runtime_error("Unable to compile vertex shader! Aborting...");
-    }
+    }*/
 
     // Read the Fragment Shader code from the file
-    std::string fragmentShaderCode;
+/*    std::string fragmentShaderCode;
     std::ifstream fragmentShaderStream(shadersDirPath + fragmentFileName, std::ios::in);
     if (fragmentShaderStream.is_open()) {
         std::stringstream stringStream;
@@ -145,13 +147,14 @@ ShaderProgram OpenGLPipelineService::loadShaders(const std::string& vertexFileNa
     }
     else {
         throw std::runtime_error("Unable to compile fragment shader! Aborting...");
-    }
+    }*/
 
     GLint Result = GL_FALSE;
     int infoLogLength;
 
     // Compile Vertex Shader
-    char const* vertexSourcePointer = vertexShaderCode.c_str();
+    auto vertVec = FileLoadingService::readFile(_assetManager, shadersDirPath + vertexFileName);
+    char const* vertexSourcePointer = vertVec.data();
     glShaderSource(vertexShaderId, 1, &vertexSourcePointer, nullptr);
     glCompileShader(vertexShaderId);
 
@@ -161,12 +164,13 @@ ShaderProgram OpenGLPipelineService::loadShaders(const std::string& vertexFileNa
     if (infoLogLength > 0) {
         std::vector<char> vertexShaderErrorMessage(static_cast<size_t>(infoLogLength) + 1);
         glGetShaderInfoLog(vertexShaderId, infoLogLength, nullptr, &vertexShaderErrorMessage[0]);
-        std::cout << std::string(&vertexShaderErrorMessage[0]) << std::endl;
+        auto wellthen = std::string(&vertexShaderErrorMessage[0]);
         throw std::runtime_error("Unable to continue! Please fix the compile time error in the specified shader.");
     }
 
     // Compile Fragment Shader
-    const char* FragmentSourcePointer = fragmentShaderCode.c_str();
+    auto fragVec = FileLoadingService::readFile(_assetManager, shadersDirPath + fragmentFileName);
+    const char* FragmentSourcePointer = fragVec.data();
     glShaderSource(fragmentShaderId, 1, &FragmentSourcePointer, nullptr);
     glCompileShader(fragmentShaderId);
 
@@ -176,7 +180,7 @@ ShaderProgram OpenGLPipelineService::loadShaders(const std::string& vertexFileNa
     if (infoLogLength > 0) {
         std::vector<char> fragmentShaderErrorMessage(static_cast<size_t>(infoLogLength) + 1);
         glGetShaderInfoLog(fragmentShaderId, infoLogLength, nullptr, &fragmentShaderErrorMessage[0]);
-        std::cout << std::string(&fragmentShaderErrorMessage[0]) << std::endl;
+        auto wellthen = std::string(&fragmentShaderErrorMessage[0]);
         throw std::runtime_error("Unable to continue! Please fix the compile time error in the specified shader.");
     }
 
@@ -220,7 +224,7 @@ void OpenGLPipelineService::loadTextures() {
 
     // Read the file:
 
-    AAsset* file = AAssetManager_open(_app->activity->assetManager,
+    AAsset* file = AAssetManager_open(_assetManager,
                                       "Resources/Textures/texture.png", AASSET_MODE_BUFFER);
     size_t fileLength = AAsset_getLength(file);
     stbi_uc* fileContent = new unsigned char[fileLength];
@@ -247,7 +251,6 @@ void OpenGLPipelineService::loadTextures() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, mode, texWidth, texHeight, 0, mode, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*>(pixels));
-    auto fuck = glGetError();
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(pixels);
@@ -270,9 +273,11 @@ void OpenGLPipelineService::bufferVertexData() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * _voxelInstanceCount, _transformData.data(), GL_STATIC_DRAW);
 }
 
-void OpenGLPipelineService::initOpenGLES(android_app* app) {
-    _app = app;
-    const EGLint attribs[] = {
+void OpenGLPipelineService::initOpenGLES(uint32_t width, uint32_t height) {
+    _width = width;
+    _height = height;
+    _ubo = { glm::lookAt(glm::vec3(40.0f, 40.0f, 56.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)), glm::perspective(glm::radians(90.0f), (float)_width / (float)_height, 0.1f, 65565.0f) };
+/*    const EGLint attribs[] = {
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
             EGL_BLUE_SIZE, 8,
             EGL_GREEN_SIZE, 8,
@@ -338,7 +343,7 @@ void OpenGLPipelineService::initOpenGLES(android_app* app) {
 
     _display = display;
     _surface = surface;
-    _context = context;
+    _context = context;*/
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -348,21 +353,21 @@ void OpenGLPipelineService::initOpenGLES(android_app* app) {
 
     loadTextures();
     setUpCubeInstancing();
-    _phongProgram = loadShaders("Shader.vert", "Shader.frag");
+    _phongProgram = loadShaders("shader.vert", "shader.frag");
     _initialised = true;
 }
 
 void OpenGLPipelineService::destroyEGLContext() {
     //LOG_INFO("Destroying context");
 
-    eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+/*    eglMakeCurrent(_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglDestroyContext(_display, _context);
     eglDestroySurface(_display, _surface);
     eglTerminate(_display);
 
     _display = EGL_NO_DISPLAY;
     _surface = EGL_NO_SURFACE;
-    _context = EGL_NO_CONTEXT;
+    _context = EGL_NO_CONTEXT;*/
 
     return;
 }
@@ -517,11 +522,6 @@ void OpenGLPipelineService::drawFrame() {
     bufferVertexData();
     handleTexture();
     handleVAODraw();
-
-    if (!eglSwapBuffers(_display, _surface)) {
-        cleanup();
-        throw std::runtime_error("eglSwapBuffers() returned error: " + eglGetError());
-    }
 }
 
 void OpenGLPipelineService::mainLoop() {

@@ -1,8 +1,8 @@
 #ifndef OPENGLPIPELINESERVICE_H
 #define OPENGLPIPELINESERVICE_H
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+/*#include <EGL/egl.h>
+#include <EGL/eglext.h>*/
 #include<GLES3/gl3.h>
 #include<GLES3/gl3ext.h>
 
@@ -34,15 +34,17 @@
 
 class OpenGLPipelineService {
 private:
-    android_app* _app = nullptr;
+	AAssetManager* _assetManager = nullptr;
     bool _initialised = false;
+/*
     EGLDisplay _display;
     EGLSurface _surface;
     EGLContext _context;
+*/
 
-	const uint32_t _width = 3120 / 2; //TODO: Fix this for my actual screen
-	const uint32_t _height = 1440 / 2;
-	CameraBufferObject _ubo{ glm::lookAt(glm::vec3(40.0f, 40.0f, 56.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)), glm::perspective(glm::radians(90.0f), (float)_width / (float)_height, 0.1f, 65565.0f) };
+	uint32_t _width = 0; //TODO: Fix this for my actual screen
+	uint32_t _height = 0;
+	CameraBufferObject _ubo;
 
 
 	bool _cameraUboGenerated = false;
@@ -166,8 +168,8 @@ private:
 public:
     inline bool isInitialised() { return _initialised; }
 
-    void initVoxelData(android_app* app);
-    void initOpenGLES(android_app* app);
+    void initVoxelData(AAssetManager* manager);
+    void initOpenGLES(uint32_t width, uint32_t height);
     void drawFrame();
     void cleanup();
 	OpenGLPipelineService() noexcept;

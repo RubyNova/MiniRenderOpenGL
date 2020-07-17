@@ -14,48 +14,38 @@
 #include <android/log.h>
 #include <android_native_app_glue.h>
 #include "OpenGLCubePipeline/include/OpenGLPipelineService.h"
+#include <glfm.h>
 #include <memory>
 
 std::unique_ptr<OpenGLPipelineService> _service = nullptr;
-android_app* _app = nullptr;
-// Process the next main command.
-void handle_cmd(android_app* app, int32_t cmd) {
-    switch (cmd) {
-        case APP_CMD_INIT_WINDOW:
-            // The window is being shown, get it ready.
-            _service->initOpenGLES(_app);
-            break;
-        case APP_CMD_TERM_WINDOW:
-            // The window is being hidden or closed, clean it up.
-            _service->cleanup();
-            break;
-        default:
-            __android_log_print(ANDROID_LOG_INFO, "Vulkan Tutorials",
-                                "event not handled: %d", cmd);
-    }
+
+static void onSurfaceCreated(GLFMDisplay *display, const int width, const int height) {
+    _service->initOpenGLES(width, height);
 }
 
-void android_main(struct android_app* app) {
-    _app = app;
+static void onSurfaceDestroyed(GLFMDisplay *display) {
+    // When the surface is destroyed, all existing GL resources are no longer valid
+    _service->cleanup();
+}
+
+static void onFrame(GLFMDisplay *display, const double frameTime) {
+    _service->drawFrame();
+}
+
+
+
+void glfmMain(GLFMDisplay *display) {
     _service = std::make_unique<OpenGLPipelineService>();
-    _service->initVoxelData(app);
-    // Set the callback to process system events
-    app->onAppCmd = handle_cmd;
-
-    // Used to poll the events in the main loop
-    int events;
-    android_poll_source* source;
-
-    // Main loop
-    do {
-        if (ALooper_pollAll(_service->isInitialised() ? 1 : 0, nullptr,
-                            &events, (void**)&source) >= 0) {
-            if (source != NULL) source->process(app, source);
-        }
-
-        // render if vulkan is ready
-        if (_service->isInitialised()) {
-            _service->drawFrame();
-        }
-    } while (app->destroyRequested == 0);
+    _service->initVoxelData(glfmAndroidGetActivity()->assetManager);
+    glfmSetDisplayConfig(display,
+                         GLFMRenderingAPIOpenGLES3,
+                         GLFMColorFormatRGBA8888,
+                         GLFMDepthFormatNone,
+                         GLFMStencilFormatNone,
+                         GLFMMultisampleNone);
+    glfmSetSurfaceCreatedFunc(display, onSurfaceCreated);
+    glfmSetSurfaceResizedFunc(display, onSurfaceCreated);
+    glfmSetSurfaceDestroyedFunc(display, onSurfaceDestroyed);
+    glfmSetMainLoopFunc(display, onFrame);
 }
+

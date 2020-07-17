@@ -1,5 +1,4 @@
 #version 300 es
-#extension GL_ARB_separate_shader_objects : enable
 precision mediump float;
 uniform CameraBufferObject {
     mat4 view;
